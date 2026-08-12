@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
-import { exec } from 'child_process';
+import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { generateAboutMeImage } from './src/imageGenerator.js';
 import { createCacheKey, getCachedImage, setCachedImage } from './src/cache.js';
@@ -24,7 +24,9 @@ try {
         fs.copyFileSync(path.join(fontsDir, file), path.join(userFontDir, file));
       }
     });
-    exec('fc-cache -f ~/.fonts', () => {});
+    try {
+      execSync('fc-cache -f ~/.fonts', { stdio: 'ignore' });
+    } catch (_) {}
   }
 } catch (e) {
   console.warn('Font registration warning:', e.message);

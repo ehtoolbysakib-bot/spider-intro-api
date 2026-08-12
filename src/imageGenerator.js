@@ -26,7 +26,7 @@ function getFontCss() {
     @font-face {
       font-family: 'Pirata One';
       src: url('data:font/ttf;charset=utf-8;base64,${pirataB64}') format('truetype');
-      font-weight: 400;
+      font-weight: normal;
       font-style: normal;
     }
   `;
@@ -53,7 +53,7 @@ export async function generateAboutMeImage(data = {}) {
   };
 
   // Strictly Pirata One font for all text on the image
-  const fontFamilyName = "'Pirata One', serif";
+  const fontFamilyName = 'Pirata One';
 
   const fontCss = getFontCss();
   const fields = ['name', 'age', 'location', 'religion', 'relationship', 'height', 'birthday', 'bestie'];
