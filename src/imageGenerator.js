@@ -1,3 +1,4 @@
+import './setupFonts.js';
 import sharp from 'sharp';
 import fs from 'fs';
 import config from './config.js';
@@ -75,18 +76,17 @@ export async function generateAboutMeImage(data = {}) {
     );
 
     textElementsSvg += `
-      <!-- Subtle Spidery Red Glow Background for Value Text -->
+      <!-- Subtle Soft Red Halo Behind Value Text -->
       <text
         x="${pos.x}"
         y="${pos.y}"
-        fill="#ff1a1a"
+        fill="#800000"
         font-family="${fontFamilyName}"
         font-size="${fontSize}"
-        letter-spacing="1px"
+        letter-spacing="0.5px"
+        opacity="0.15"
         stroke="#990000"
-        stroke-width="1.2"
-        opacity="0.75"
-        filter="url(#spideryGlow)"
+        stroke-width="1.5"
       >${escapedText}</text>
       <!-- Crisp Foreground Value Text -->
       <text
@@ -95,7 +95,7 @@ export async function generateAboutMeImage(data = {}) {
         fill="${config.typography.valueColor}"
         font-family="${fontFamilyName}"
         font-size="${fontSize}"
-        letter-spacing="1px"
+        letter-spacing="0.5px"
         filter="url(#textShadow)"
       >${escapedText}</text>
     `;
@@ -109,14 +109,7 @@ export async function generateAboutMeImage(data = {}) {
           ${fontCss}
         </style>
         <filter id="textShadow" x="-10%" y="-10%" width="120%" height="120%">
-          <feDropShadow dx="1.5" dy="2.5" stdDeviation="2" flood-color="#000000" flood-opacity="0.95"/>
-        </filter>
-        <filter id="spideryGlow" x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur stdDeviation="2.5" result="blur"/>
-          <feMerge>
-            <feMergeNode in="blur"/>
-            <feMergeNode in="SourceGraphic"/>
-          </feMerge>
+          <feDropShadow dx="1" dy="1.5" stdDeviation="1" flood-color="#600000" flood-opacity="0.3"/>
         </filter>
       </defs>
       <g>

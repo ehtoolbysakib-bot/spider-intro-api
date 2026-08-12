@@ -185,10 +185,10 @@ export default function App() {
               <div className="absolute top-0 right-0 w-64 h-64 bg-red-600/5 rounded-full blur-3xl pointer-events-none"></div>
               <div className="relative z-10 space-y-3">
                 <div className="flex items-center gap-2 text-red-400 text-sm font-semibold tracking-wide uppercase">
-                  <Zap className="w-4 h-4" /> Server-Side Gothic PNG Image Renderer
+                  <Zap className="w-4 h-4" /> Server-Side Gothic Light PNG Image Renderer
                 </div>
                 <p className="text-gray-300 text-sm sm:text-base leading-relaxed max-w-4xl">
-                  This API generates high-quality Gothic <strong className="text-white">About Me PNG images</strong> on the server using Node.js, Express, and Sharp with <strong>Pirata One</strong> gothic font. Query parameters are composited over the dark gothic template and returned <strong className="text-red-400">directly as binary PNG image responses</strong>.
+                  This API generates high-quality Gothic Light <strong className="text-white">About Me PNG images</strong> on the server with intricate spider webs, dangling spiders, and custom <strong>Pirata One</strong> typography. Created & Designed by <strong className="text-red-400">SA K IB</strong>. Query parameters are composited over the light gothic parchment template and returned <strong className="text-red-400">directly as binary PNG image responses</strong>.
                 </p>
                 <div className="pt-1">
                   <button

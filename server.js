@@ -1,43 +1,13 @@
+import './src/setupFonts.js';
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
-import os from 'os';
-import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { generateAboutMeImage } from './src/imageGenerator.js';
 import { createCacheKey, getCachedImage, setCachedImage } from './src/cache.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// Ensure TTF fonts are registered in user font directories for Linux Fontconfig/librsvg
-try {
-  const userFontDir = path.join(os.homedir(), '.fonts');
-  const userLocalFontDir = path.join(os.homedir(), '.local', 'share', 'fonts');
-
-  [userFontDir, userLocalFontDir].forEach((dir) => {
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-  });
-
-  const fontsDir = path.join(__dirname, 'assets', 'fonts');
-  if (fs.existsSync(fontsDir)) {
-    const fontFiles = fs.readdirSync(fontsDir);
-    fontFiles.forEach((file) => {
-      if (file.endsWith('.ttf')) {
-        const src = path.join(fontsDir, file);
-        fs.copyFileSync(src, path.join(userFontDir, file));
-        fs.copyFileSync(src, path.join(userLocalFontDir, file));
-      }
-    });
-    try {
-      execSync('fc-cache -f ~/.fonts ~/.local/share/fonts', { stdio: 'ignore' });
-    } catch (_) {}
-  }
-} catch (e) {
-  console.warn('Font registration warning:', e.message);
-}
 
 const app = express();
 const PORT = process.env.PORT || 3000;

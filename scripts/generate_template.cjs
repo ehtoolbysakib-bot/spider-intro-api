@@ -1,6 +1,65 @@
-const sharp = require('sharp');
-const fs = require('fs');
 const path = require('path');
+const fs = require('fs');
+const os = require('os');
+const { execSync } = require('child_process');
+
+// Configure Fontconfig BEFORE loading sharp
+const fontsDir = path.join(__dirname, '../assets/fonts');
+const confDir = path.join(__dirname, '../assets/fontconfig');
+
+if (!fs.existsSync(confDir)) {
+  fs.mkdirSync(confDir, { recursive: true });
+}
+
+const userFontsDir = path.join(os.homedir(), '.fonts');
+const userLocalFontsDir = path.join(os.homedir(), '.local', 'share', 'fonts');
+
+[userFontsDir, userLocalFontsDir].forEach((dir) => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+});
+
+if (fs.existsSync(fontsDir)) {
+  const fontFiles = fs.readdirSync(fontsDir);
+  fontFiles.forEach((file) => {
+    if (file.endsWith('.ttf') || file.endsWith('.otf')) {
+      const src = path.join(fontsDir, file);
+      try {
+        fs.copyFileSync(src, path.join(userFontsDir, file));
+        fs.copyFileSync(src, path.join(userLocalFontsDir, file));
+      } catch (_) {}
+    }
+  });
+}
+
+const fontsConfPath = path.join(confDir, 'fonts.conf');
+const fontsConfContent = `<?xml version="1.0"?>
+<!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+<fontconfig>
+  <dir>${fontsDir}</dir>
+  <dir>${userFontsDir}</dir>
+  <dir>${userLocalFontsDir}</dir>
+  <dir prefix="xdg">fonts</dir>
+  <cachedir>/tmp/fontconfig-cache</cachedir>
+  <config>
+    <rescan>
+      <int>30</int>
+    </rescan>
+  </config>
+</fontconfig>`;
+
+try {
+  fs.writeFileSync(fontsConfPath, fontsConfContent);
+} catch (_) {}
+
+process.env.FONTCONFIG_PATH = confDir;
+
+try {
+  execSync(`fc-cache -f "${fontsDir}" "${userFontsDir}" "${userLocalFontsDir}"`, { stdio: 'ignore' });
+} catch (_) {}
+
+const sharp = require('sharp');
 
 async function buildTemplate() {
   const width = 1200;
@@ -10,92 +69,99 @@ async function buildTemplate() {
 
   // Fields configuration
   const fields = [
-    { label: 'Name', y: 260, labelX: 200, arrowX: 340, lineStartX: 380, lineEndX: 1020 },
-    { label: 'Age', y: 360, labelX: 200, arrowX: 290, lineStartX: 330, lineEndX: 1020 },
-    { label: 'Location', y: 460, labelX: 200, arrowX: 380, lineStartX: 420, lineEndX: 1020 },
-    { label: 'Religion', y: 560, labelX: 200, arrowX: 370, lineStartX: 410, lineEndX: 1020 },
-    { label: 'Relationship', y: 660, labelX: 200, arrowX: 430, lineStartX: 470, lineEndX: 1020 },
-    { label: 'Hight', y: 760, labelX: 200, arrowX: 320, lineStartX: 360, lineEndX: 1020 },
-    { label: 'Birthday', y: 860, labelX: 200, arrowX: 370, lineStartX: 410, lineEndX: 1020 },
-    { label: 'Besteii:', y: 960, labelX: 200, arrowX: 360, lineStartX: 400, lineEndX: 1020 },
+    { label: 'Name', y: 250, labelX: 190, arrowX: 330, lineStartX: 370, lineEndX: 1040 },
+    { label: 'Age', y: 345, labelX: 190, arrowX: 280, lineStartX: 320, lineEndX: 1040 },
+    { label: 'Location', y: 440, labelX: 190, arrowX: 370, lineStartX: 410, lineEndX: 1040 },
+    { label: 'Religion', y: 535, labelX: 190, arrowX: 360, lineStartX: 400, lineEndX: 1040 },
+    { label: 'Relationship', y: 630, labelX: 190, arrowX: 420, lineStartX: 460, lineEndX: 1040 },
+    { label: 'Hight', y: 725, labelX: 190, arrowX: 310, lineStartX: 350, lineEndX: 1040 },
+    { label: 'Birthday', y: 820, labelX: 190, arrowX: 360, lineStartX: 400, lineEndX: 1040 },
+    { label: 'Besteii:', y: 915, labelX: 190, arrowX: 350, lineStartX: 390, lineEndX: 1040 },
   ];
 
-  // Generate spiderweb SVG paths
+  // Intricate Light-Theme Spiderweb SVGs (Crimson lines against Light Parchment Canvas)
   const topWebLeft = `
-    <g stroke="#ffffff" stroke-opacity="0.35" stroke-width="1.5" fill="none">
-      <path d="M 0 0 L 220 0 M 0 0 L 200 60 M 0 0 L 160 140 M 0 0 L 100 200 M 0 0 L 0 220" />
-      <path d="M 50 0 Q 40 20 0 40 M 100 0 Q 80 40 0 80 M 150 0 Q 120 70 0 130 M 200 0 Q 160 110 0 180 M 220 0 Q 180 140 0 220" />
+    <g stroke="#7a0000" stroke-opacity="0.32" stroke-width="1.2" fill="none">
+      <path d="M 0 0 L 260 0 M 0 0 L 240 70 M 0 0 L 190 160 M 0 0 L 120 230 M 0 0 L 0 260" />
+      <path d="M 60 0 Q 50 25 0 50 M 120 0 Q 95 50 0 100 M 180 0 Q 140 85 0 160 M 230 0 Q 180 130 0 220 M 260 0 Q 210 160 0 260" />
     </g>
   `;
 
   const topWebRight = `
-    <g transform="translate(1200, 0) scale(-1, 1)" stroke="#ffffff" stroke-opacity="0.35" stroke-width="1.5" fill="none">
-      <path d="M 0 0 L 220 0 M 0 0 L 200 60 M 0 0 L 160 140 M 0 0 L 100 200 M 0 0 L 0 220" />
-      <path d="M 50 0 Q 40 20 0 40 M 100 0 Q 80 40 0 80 M 150 0 Q 120 70 0 130 M 200 0 Q 160 110 0 180 M 220 0 Q 180 140 0 220" />
+    <g transform="translate(1200, 0) scale(-1, 1)" stroke="#7a0000" stroke-opacity="0.32" stroke-width="1.2" fill="none">
+      <path d="M 0 0 L 260 0 M 0 0 L 240 70 M 0 0 L 190 160 M 0 0 L 120 230 M 0 0 L 0 260" />
+      <path d="M 60 0 Q 50 25 0 50 M 120 0 Q 95 50 0 100 M 180 0 Q 140 85 0 160 M 230 0 Q 180 130 0 220 M 260 0 Q 210 160 0 260" />
     </g>
   `;
 
   const bottomWebLeft = `
-    <g transform="translate(0, 1100) scale(1, -1)" stroke="#ffffff" stroke-opacity="0.3" stroke-width="1.5" fill="none">
-      <path d="M 0 0 L 200 0 M 0 0 L 180 50 M 0 0 L 140 120 M 0 0 L 80 170 M 0 0 L 0 190" />
-      <path d="M 40 0 Q 30 15 0 30 M 80 0 Q 60 30 0 60 M 120 0 Q 90 55 0 100 M 160 0 Q 130 85 0 145 M 200 0 Q 150 115 0 190" />
+    <g transform="translate(0, 1100) scale(1, -1)" stroke="#7a0000" stroke-opacity="0.3" stroke-width="1.2" fill="none">
+      <path d="M 0 0 L 240 0 M 0 0 L 210 60 M 0 0 L 160 140 M 0 0 L 90 200 M 0 0 L 0 230" />
+      <path d="M 50 0 Q 40 20 0 40 M 100 0 Q 80 40 0 80 M 150 0 Q 120 70 0 130 M 200 0 Q 160 110 0 180 M 240 0 Q 190 140 0 230" />
     </g>
   `;
 
   const bottomWebRight = `
-    <g transform="translate(1200, 1100) scale(-1, -1)" stroke="#ffffff" stroke-opacity="0.3" stroke-width="1.5" fill="none">
-      <path d="M 0 0 L 200 0 M 0 0 L 180 50 M 0 0 L 140 120 M 0 0 L 80 170 M 0 0 L 0 190" />
-      <path d="M 40 0 Q 30 15 0 30 M 80 0 Q 60 30 0 60 M 120 0 Q 90 55 0 100 M 160 0 Q 130 85 0 145 M 200 0 Q 150 115 0 190" />
+    <g transform="translate(1200, 1100) scale(-1, -1)" stroke="#7a0000" stroke-opacity="0.3" stroke-width="1.2" fill="none">
+      <path d="M 0 0 L 240 0 M 0 0 L 210 60 M 0 0 L 160 140 M 0 0 L 90 200 M 0 0 L 0 230" />
+      <path d="M 50 0 Q 40 20 0 40 M 100 0 Q 80 40 0 80 M 150 0 Q 120 70 0 130 M 200 0 Q 160 110 0 180 M 240 0 Q 190 140 0 230" />
     </g>
   `;
 
-  // Spider icon helper
-  const drawSpider = (cx, cy, scale = 1) => `
-    <g transform="translate(${cx}, ${cy}) scale(${scale})">
-      <!-- Body & Head -->
-      <ellipse cx="0" cy="2" rx="7" ry="9" fill="#111111" stroke="#ff3333" stroke-width="0.8"/>
-      <circle cx="0" cy="-8" r="4.5" fill="#111111" stroke="#ff3333" stroke-width="0.8"/>
-      <!-- Eyes / Hourglass motif -->
-      <polygon points="-2,-1 2,-1 0,3" fill="#ff1a1a"/>
-      <polygon points="-2,5 2,5 0,1" fill="#ff1a1a"/>
-      <!-- Glowing eyes -->
-      <circle cx="-1.8" cy="-9" r="1" fill="#ff3333"/>
-      <circle cx="1.8" cy="-9" r="1" fill="#ff3333"/>
+  // Detailed Spider Generator Helper
+  const drawSpider = (cx, cy, scale = 1, rotation = 0, opacity = 1) => `
+    <g transform="translate(${cx}, ${cy}) scale(${scale}) rotate(${rotation})" opacity="${opacity}">
+      <!-- Abdomen & Thorax -->
+      <ellipse cx="0" cy="3" rx="7.5" ry="10" fill="#1f0202" stroke="#800000" stroke-width="0.8"/>
+      <circle cx="0" cy="-7" r="5" fill="#1f0202" stroke="#800000" stroke-width="0.8"/>
+      
+      <!-- Hourglass Mark / Crimson Pattern -->
+      <polygon points="-2.5,-2 2.5,-2 0,2" fill="#d60000"/>
+      <polygon points="-2.5,6 2.5,6 0,2" fill="#d60000"/>
+      
+      <!-- Fangs / Eyes -->
+      <circle cx="-2" cy="-9" r="1" fill="#ff1a1a"/>
+      <circle cx="2" cy="-9" r="1" fill="#ff1a1a"/>
+      
       <!-- Legs (Left) -->
-      <path d="M -5 -6 Q -15 -14 -18 -8" stroke="#ff2222" stroke-width="1.5" fill="none"/>
-      <path d="M -6 -2 Q -18 -8 -20 2" stroke="#ff2222" stroke-width="1.5" fill="none"/>
-      <path d="M -6 2 Q -18 8 -19 14" stroke="#ff2222" stroke-width="1.5" fill="none"/>
-      <path d="M -5 6 Q -14 16 -12 22" stroke="#ff2222" stroke-width="1.5" fill="none"/>
+      <path d="M -5 -5 Q -16 -15 -20 -8" stroke="#800000" stroke-width="1.6" fill="none"/>
+      <path d="M -6 -1 Q -20 -9 -22 2" stroke="#800000" stroke-width="1.6" fill="none"/>
+      <path d="M -6 3 Q -20 10 -21 16" stroke="#800000" stroke-width="1.6" fill="none"/>
+      <path d="M -5 7 Q -15 18 -13 24" stroke="#800000" stroke-width="1.6" fill="none"/>
+      
       <!-- Legs (Right) -->
-      <path d="M 5 -6 Q 15 -14 18 -8" stroke="#ff2222" stroke-width="1.5" fill="none"/>
-      <path d="M 6 -2 Q 18 -8 20 2" stroke="#ff2222" stroke-width="1.5" fill="none"/>
-      <path d="M 6 2 Q 18 8 19 14" stroke="#ff2222" stroke-width="1.5" fill="none"/>
-      <path d="M 5 6 Q 14 16 12 22" stroke="#ff2222" stroke-width="1.5" fill="none"/>
+      <path d="M 5 -5 Q 16 -15 20 -8" stroke="#800000" stroke-width="1.6" fill="none"/>
+      <path d="M 6 -1 Q 20 -9 22 2" stroke="#800000" stroke-width="1.6" fill="none"/>
+      <path d="M 6 3 Q 20 10 21 16" stroke="#800000" stroke-width="1.6" fill="none"/>
+      <path d="M 5 7 Q 15 18 13 24" stroke="#800000" stroke-width="1.6" fill="none"/>
     </g>
   `;
 
-  // Red arrowhead pointer helper
+  // Arrowhead Pointer
   const drawArrow = (x, y) => `
     <g transform="translate(${x}, ${y - 8})">
-      <path d="M 0 0 L 16 8 L 0 16 L 5 8 Z" fill="url(#redGlowGradient)"/>
-      <path d="M 0 0 L 16 8 L 0 16" fill="none" stroke="#ff6666" stroke-width="0.8"/>
+      <path d="M 0 0 L 16 8 L 0 16 L 5 8 Z" fill="url(#crimsonArrowGradient)"/>
+      <path d="M 0 0 L 16 8 L 0 16" fill="none" stroke="#b30000" stroke-width="1"/>
     </g>
   `;
 
   let fieldsMarkup = '';
-  fields.forEach(f => {
-    // Spider on left
-    fieldsMarkup += drawSpider(f.labelX - 60, f.y - 10, 0.75);
-    // Label
+  fields.forEach((f, idx) => {
+    // Spider icon next to every field
+    fieldsMarkup += drawSpider(f.labelX - 55, f.y - 10, 0.75, (idx % 2 === 0 ? 0 : 15), 0.95);
+    
+    // Field Label
     fieldsMarkup += `
-      <text x="${f.labelX}" y="${f.y}" font-family="Pirata One" font-size="44" font-weight="normal" fill="url(#gothicRed)" filter="url(#dropShadow)">${f.label}</text>
+      <text x="${f.labelX}" y="${f.y}" font-family="Pirata One" font-size="44" font-weight="normal" fill="url(#gothicTitleRed)" filter="url(#softShadow)">${f.label}</text>
     `;
-    // Arrowhead
+    
+    // Arrowhead pointer
     fieldsMarkup += drawArrow(f.arrowX, f.y);
-    // Red horizontal line
+    
+    // Red / Burgundy underline
     fieldsMarkup += `
-      <line x1="${f.lineStartX}" y1="${f.y + 12}" x2="${f.lineEndX}" y2="${f.y + 12}" stroke="#cc1111" stroke-width="1.8" opacity="0.85"/>
-      <line x1="${f.lineStartX}" y1="${f.y + 13}" x2="${f.lineEndX}" y2="${f.y + 13}" stroke="#ff3333" stroke-width="0.6" opacity="0.6"/>
+      <line x1="${f.lineStartX}" y1="${f.y + 10}" x2="${f.lineEndX}" y2="${f.y + 10}" stroke="#800000" stroke-width="2" opacity="0.85"/>
+      <line x1="${f.lineStartX}" y1="${f.y + 12}" x2="${f.lineEndX}" y2="${f.y + 12}" stroke="#b30000" stroke-width="0.7" opacity="0.6"/>
     `;
   });
 
@@ -111,66 +177,93 @@ async function buildTemplate() {
         }
       </style>
 
-      <!-- Gradient for Gothic Red Title and Labels -->
-      <linearGradient id="gothicRed" x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stop-color="#ff4d4d"/>
-        <stop offset="35%" stop-color="#e60000"/>
-        <stop offset="70%" stop-color="#b30000"/>
+      <!-- Parchment Background Gradient -->
+      <radialGradient id="lightBg" cx="50%" cy="50%" r="70%" fx="50%" fy="50%">
+        <stop offset="0%" stop-color="#ffffff"/>
+        <stop offset="50%" stop-color="#f8f6f0"/>
+        <stop offset="85%" stop-color="#eee9df"/>
+        <stop offset="100%" stop-color="#e2dad0"/>
+      </radialGradient>
+
+      <!-- Gradient for Main Titles & Labels -->
+      <linearGradient id="gothicTitleRed" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#990000"/>
+        <stop offset="50%" stop-color="#7a0000"/>
+        <stop offset="100%" stop-color="#4d0000"/>
+      </linearGradient>
+
+      <!-- Arrow Pointer Gradient -->
+      <linearGradient id="crimsonArrowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#cc0000"/>
         <stop offset="100%" stop-color="#660000"/>
       </linearGradient>
 
-      <!-- Red Glow for Arrows & Details -->
-      <linearGradient id="redGlowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#ff3333"/>
-        <stop offset="100%" stop-color="#880000"/>
-      </linearGradient>
-
-      <!-- Subtle Shadow Filter for Gothic Text -->
-      <filter id="dropShadow" x="-10%" y="-10%" width="120%" height="120%">
-        <feDropShadow dx="2" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.9"/>
-      </filter>
-      <filter id="redGlow" x="-20%" y="-20%" width="140%" height="140%">
-        <feGaussianBlur stdDeviation="3" result="blur" />
-        <feComponentTransfer in="blur">
-          <feFuncA type="linear" slope="0.7"/>
-        </feComponentTransfer>
-        <feMerge>
-          <feMergeNode />
-          <feMergeNode in="SourceGraphic" />
-        </feMerge>
+      <!-- Soft Shadow Filter for Light Background -->
+      <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+        <feDropShadow dx="1.5" dy="2" stdDeviation="1.5" flood-color="#550000" flood-opacity="0.25"/>
       </filter>
     </defs>
 
-    <!-- Pitch Black Background -->
-    <rect width="100%" height="100%" fill="#050505"/>
+    <!-- Light Theme Parchment Canvas -->
+    <rect width="100%" height="100%" fill="url(#lightBg)"/>
 
-    <!-- Subtle border frame -->
-    <rect x="10" y="10" width="1180" height="1080" fill="none" stroke="#220000" stroke-width="2"/>
-    <rect x="15" y="15" width="1170" height="1070" fill="none" stroke="#aa1111" stroke-width="0.8" opacity="0.3"/>
+    <!-- Decorative Corner & Border Frame -->
+    <rect x="12" y="12" width="1176" height="1076" fill="none" stroke="#6b0000" stroke-width="2.5"/>
+    <rect x="18" y="18" width="1164" height="1064" fill="none" stroke="#800000" stroke-width="0.8" stroke-dasharray="8 4" opacity="0.6"/>
 
-    <!-- Spiderwebs in 4 corners -->
+    <!-- Corner Brackets -->
+    <path d="M 12 50 L 50 12 M 1188 50 L 1150 12 M 12 1050 L 50 1088 M 1188 1050 L 1150 1088" stroke="#800000" stroke-width="2"/>
+
+    <!-- Spiderwebs in 4 Corners -->
     ${topWebLeft}
     ${topWebRight}
     ${bottomWebLeft}
     ${bottomWebRight}
 
-    <!-- Dangling Spider on Right Edge -->
-    <line x1="1110" y1="0" x2="1110" y2="620" stroke="#ffffff" stroke-width="0.8" opacity="0.4"/>
-    ${drawSpider(1110, 620, 1.1)}
+    <!-- Multiple Dangling Spiders on Silk Threads -->
+    <!-- Dangling Spider 1 (Top Left) -->
+    <line x1="120" y1="0" x2="120" y2="160" stroke="#7a0000" stroke-width="0.8" stroke-dasharray="3 2" opacity="0.5"/>
+    ${drawSpider(120, 160, 0.95, 0, 0.9)}
 
-    <!-- Top Spiders flanking title -->
-    ${drawSpider(240, 110, 1.2)}
-    ${drawSpider(960, 110, 1.2)}
+    <!-- Dangling Spider 2 (Top Right) -->
+    <line x1="1080" y1="0" x2="1080" y2="180" stroke="#7a0000" stroke-width="0.8" stroke-dasharray="3 2" opacity="0.5"/>
+    ${drawSpider(1080, 180, 0.95, 0, 0.9)}
 
-    <!-- Red Sparkles flanking title -->
-    <text x="360" y="122" font-size="32" fill="#ff3333" filter="url(#redGlow)" text-anchor="middle">✦</text>
-    <text x="840" y="122" font-size="32" fill="#ff3333" filter="url(#redGlow)" text-anchor="middle">✦</text>
+    <!-- Dangling Spider 3 (Right Margin Middle) -->
+    <line x1="1120" y1="0" x2="1120" y2="580" stroke="#7a0000" stroke-width="0.8" opacity="0.4"/>
+    ${drawSpider(1120, 580, 1.1, -10, 0.95)}
+
+    <!-- Dangling Spider 4 (Left Margin Middle) -->
+    <line x1="80" y1="0" x2="80" y2="520" stroke="#7a0000" stroke-width="0.8" opacity="0.4"/>
+    ${drawSpider(80, 520, 1.05, 12, 0.9)}
+
+    <!-- Spider 5 & 6 Flanking Title -->
+    ${drawSpider(230, 105, 1.25, -15, 1)}
+    ${drawSpider(970, 105, 1.25, 15, 1)}
+
+    <!-- Top Ornaments Flanking Title -->
+    <text x="350" y="115" font-size="28" fill="#800000" text-anchor="middle">✦</text>
+    <text x="850" y="115" font-size="28" fill="#800000" text-anchor="middle">✦</text>
 
     <!-- Main Title "About Me" -->
-    <text x="600" y="125" font-family="Pirata One" font-size="82" font-weight="normal" fill="url(#gothicRed)" text-anchor="middle" filter="url(#dropShadow)">About Me</text>
+    <text x="600" y="118" font-family="Pirata One" font-size="80" font-weight="normal" fill="url(#gothicTitleRed)" text-anchor="middle" filter="url(#softShadow)">About Me</text>
 
-    <!-- 8 Field Rows -->
+    <!-- 8 Field Rows with Spiders & Labels -->
     ${fieldsMarkup}
+
+    <!-- Bottom Credit Section "SA K IB" -->
+    <line x1="350" y1="1000" x2="850" y2="1000" stroke="#800000" stroke-width="1" opacity="0.5"/>
+    <text x="330" y="1038" font-size="20" fill="#800000" text-anchor="middle">✦</text>
+    <text x="870" y="1038" font-size="20" fill="#800000" text-anchor="middle">✦</text>
+    
+    <!-- Spiders flanking credit text -->
+    ${drawSpider(380, 1035, 0.7, -20, 0.85)}
+    ${drawSpider(820, 1035, 0.7, 20, 0.85)}
+
+    <!-- Credit Text -->
+    <text x="600" y="1038" font-family="Pirata One" font-size="32" font-weight="normal" fill="#660000" text-anchor="middle" letter-spacing="3px">
+      Design by SA K IB
+    </text>
   </svg>
   `;
 
@@ -178,7 +271,7 @@ async function buildTemplate() {
     .png()
     .toFile(path.join(__dirname, '../assets/template.png'));
 
-  console.log('Successfully generated assets/template.png');
+  console.log('Successfully generated assets/template.png (Light Theme + Spiders + Credit)');
 }
 
 buildTemplate().catch(console.error);
