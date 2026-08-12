@@ -1,24 +1,35 @@
 import './setupFonts.js';
 import sharp from 'sharp';
 import fs from 'fs';
+import path from 'path';
 import config from './config.js';
 import { normalizeText, fitText } from './textUtils.js';
 
 let fontBase64Cache = null;
 
 /**
- * Loads font files as base64 string for SVG @font-face embedding.
+ * Loads all font files as base64 strings for SVG @font-face embedding.
  * @returns {string}
  */
 function getFontCss() {
   if (fontBase64Cache) return fontBase64Cache;
 
   let pirataB64 = '';
+  let unifrakturB64 = '';
+  let cinzelB64 = '';
+  let creepsterB64 = '';
 
   try {
-    if (fs.existsSync(config.paths.fonts.pirata)) {
-      pirataB64 = fs.readFileSync(config.paths.fonts.pirata).toString('base64');
-    }
+    const rootDir = process.cwd();
+    const pirataPath = path.join(rootDir, 'assets', 'fonts', 'PirataOne-Regular.ttf');
+    const unifrakturPath = path.join(rootDir, 'assets', 'fonts', 'UnifrakturCook-Bold.ttf');
+    const cinzelPath = path.join(rootDir, 'assets', 'fonts', 'Cinzel-Regular.ttf');
+    const creepsterPath = path.join(rootDir, 'assets', 'fonts', 'Creepster-Regular.ttf');
+
+    if (fs.existsSync(pirataPath)) pirataB64 = fs.readFileSync(pirataPath).toString('base64');
+    if (fs.existsSync(unifrakturPath)) unifrakturB64 = fs.readFileSync(unifrakturPath).toString('base64');
+    if (fs.existsSync(cinzelPath)) cinzelB64 = fs.readFileSync(cinzelPath).toString('base64');
+    if (fs.existsSync(creepsterPath)) creepsterB64 = fs.readFileSync(creepsterPath).toString('base64');
   } catch (err) {
     console.warn('Could not read font files for base64 cache:', err.message);
   }
@@ -30,14 +41,52 @@ function getFontCss() {
       font-weight: normal;
       font-style: normal;
     }
+    @font-face {
+      font-family: 'UnifrakturCook';
+      src: url('data:font/ttf;charset=utf-8;base64,${unifrakturB64}') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Cinzel';
+      src: url('data:font/ttf;charset=utf-8;base64,${cinzelB64}') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Creepster';
+      src: url('data:font/ttf;charset=utf-8;base64,${creepsterB64}') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
   `;
 
   return fontBase64Cache;
 }
 
 /**
+ * Resolves font family name based on user requested font_style parameter.
+ * @param {string} fontStyle
+ * @returns {string}
+ */
+function resolveFontFamily(fontStyle = '') {
+  const style = String(fontStyle).toLowerCase().trim();
+  if (style === 'unifraktur' || style === 'oldenglish' || style === 'gothic') {
+    return 'UnifrakturCook';
+  }
+  if (style === 'cinzel' || style === 'serif' || style === 'regal') {
+    return 'Cinzel';
+  }
+  if (style === 'creepster' || style === 'spooky' || style === 'horror') {
+    return 'Creepster';
+  }
+  // Default font: Pirata One (Pirate Gothic)
+  return 'Pirata One';
+}
+
+/**
  * Generates the About Me image with user values overlaid onto the Gothic template image.
- * @param {Object} data Query parameters (name, age, location, religion, relationship, height, birthday, bestie)
+ * @param {Object} data Query parameters (name, age, location, religion, relationship, height, birthday, bestie, font_style)
  * @returns {Promise<Buffer>} PNG Image Buffer
  */
 export async function generateAboutMeImage(data = {}) {
@@ -53,9 +102,7 @@ export async function generateAboutMeImage(data = {}) {
     bestie: normalizeText(data.bestie, config.fieldLimits.bestie),
   };
 
-  // Strictly Pirata One font for all text on the image
-  const fontFamilyName = 'Pirata One';
-
+  const fontFamilyName = resolveFontFamily(data.font_style);
   const fontCss = getFontCss();
   const fields = ['name', 'age', 'location', 'religion', 'relationship', 'height', 'birthday', 'bestie'];
 

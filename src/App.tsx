@@ -16,6 +16,7 @@ export default function App() {
     height: "5'0",
     birthday: 'November 15',
     bestie: 'Moon',
+    font_style: 'pirata',
   });
 
   const [copied, setCopied] = useState(false);
@@ -230,6 +231,23 @@ export default function App() {
                       Clear All
                     </button>
                   </div>
+                </div>
+
+                {/* Font Style Selector */}
+                <div className="flex flex-col space-y-1 bg-[#12121c] p-3 rounded-lg border border-red-950/80">
+                  <label className="text-xs font-semibold text-red-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-red-400" /> Choose Unique Font Style
+                  </label>
+                  <select
+                    value={params.font_style}
+                    onChange={(e) => handleParamChange('font_style', e.target.value)}
+                    className="w-full bg-[#181826] border border-stone-800 focus:border-red-600 rounded-lg px-3 py-2 text-sm text-stone-100 outline-none font-sans cursor-pointer transition"
+                  >
+                    <option value="pirata">Pirata One (Gothic Pirate Display)</option>
+                    <option value="unifraktur">UnifrakturCook (Old English Blackletter)</option>
+                    <option value="cinzel">Cinzel (Classic Regal Serif)</option>
+                    <option value="creepster">Creepster (Spooky Horror Gothic)</option>
+                  </select>
                 </div>
 
                 {/* Input Fields Grid */}

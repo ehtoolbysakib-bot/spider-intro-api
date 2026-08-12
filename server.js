@@ -43,7 +43,7 @@ app.get('/api/about-me', async (req, res) => {
       res.set({
         'Content-Type': 'image/png',
         'Content-Disposition': 'inline',
-        'Cache-Control': 'public, max-age=3600',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
       });
       return res.send(cachedBuffer);
     }
@@ -58,7 +58,7 @@ app.get('/api/about-me', async (req, res) => {
     res.set({
       'Content-Type': 'image/png',
       'Content-Disposition': 'inline',
-      'Cache-Control': 'public, max-age=3600',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
     });
 
     return res.send(pngBuffer);
