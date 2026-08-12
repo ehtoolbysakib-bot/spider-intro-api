@@ -188,7 +188,7 @@ export default function App() {
                   <Zap className="w-4 h-4" /> Server-Side Gothic Light PNG Image Renderer
                 </div>
                 <p className="text-gray-300 text-sm sm:text-base leading-relaxed max-w-4xl">
-                  This API generates high-quality Gothic Light <strong className="text-white">About Me PNG images</strong> on the server with intricate spider webs, dangling spiders, and custom <strong>Pirata One</strong> typography. Created & Designed by <strong className="text-red-400">SA K IB</strong>. Query parameters are composited over the light gothic parchment template and returned <strong className="text-red-400">directly as binary PNG image responses</strong>.
+                  This API generates high-quality Gothic Light <strong className="text-white">About Me PNG images</strong> on the server with intricate spider webs, dangling spiders, and automatic character transformation (e.g. <span className="text-red-400 font-bold">a &rarr; 𝓐, b &rarr; 𝓑</span>). Created & Designed by <strong className="text-red-400">SA K IB</strong>. Query parameters are converted and composited over the light gothic parchment template without external font dependencies, returning <strong className="text-red-400">directly as binary PNG image responses</strong>.
                 </p>
                 <div className="pt-1">
                   <button

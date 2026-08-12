@@ -3,80 +3,39 @@ const fs = require('fs');
 const os = require('os');
 const { execSync } = require('child_process');
 
-// Configure Fontconfig BEFORE loading sharp
-const fontsDir = path.join(__dirname, '../assets/fonts');
-const confDir = path.join(__dirname, '../assets/fontconfig');
-
-if (!fs.existsSync(confDir)) {
-  fs.mkdirSync(confDir, { recursive: true });
-}
-
-const userFontsDir = path.join(os.homedir(), '.fonts');
-const userLocalFontsDir = path.join(os.homedir(), '.local', 'share', 'fonts');
-
-[userFontsDir, userLocalFontsDir].forEach((dir) => {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-});
-
-if (fs.existsSync(fontsDir)) {
-  const fontFiles = fs.readdirSync(fontsDir);
-  fontFiles.forEach((file) => {
-    if (file.endsWith('.ttf') || file.endsWith('.otf')) {
-      const src = path.join(fontsDir, file);
-      try {
-        fs.copyFileSync(src, path.join(userFontsDir, file));
-        fs.copyFileSync(src, path.join(userLocalFontsDir, file));
-      } catch (_) {}
-    }
-  });
-}
-
-const fontsConfPath = path.join(confDir, 'fonts.conf');
-const fontsConfContent = `<?xml version="1.0"?>
-<!DOCTYPE fontconfig SYSTEM "fonts.dtd">
-<fontconfig>
-  <dir>${fontsDir}</dir>
-  <dir>${userFontsDir}</dir>
-  <dir>${userLocalFontsDir}</dir>
-  <dir prefix="xdg">fonts</dir>
-  <cachedir>/tmp/fontconfig-cache</cachedir>
-  <config>
-    <rescan>
-      <int>30</int>
-    </rescan>
-  </config>
-</fontconfig>`;
-
-try {
-  fs.writeFileSync(fontsConfPath, fontsConfContent);
-} catch (_) {}
-
-process.env.FONTCONFIG_PATH = confDir;
-
-try {
-  execSync(`fc-cache -f "${fontsDir}" "${userFontsDir}" "${userLocalFontsDir}"`, { stdio: 'ignore' });
-} catch (_) {}
-
 const sharp = require('sharp');
+
+// Character mapping helper
+const fontMap = {
+  'A': '𝓐', 'B': '𝓑', 'C': '𝓒', 'D': '𝓓', 'E': '𝓔', 'F': '𝓕', 'G': '𝓖',
+  'H': '𝓗', 'I': '𝓘', 'J': '𝓙', 'K': '𝓚', 'L': '𝓛', 'M': '𝓜', 'N': '𝓝',
+  'O': '𝓞', 'P': '𝓟', 'Q': '𝓠', 'R': '𝓡', 'S': '𝓢', 'T': '𝓣', 'U': '𝓤',
+  'V': '𝓥', 'W': '𝓦', 'X': '𝓧', 'Y': '𝓨', 'Z': '𝓩',
+  'a': '𝓐', 'b': '𝓑', 'c': '𝓒', 'd': '𝓓', 'e': '𝓔', 'f': '𝓕', 'g': '𝓖',
+  'h': '𝓗', 'i': '𝓘', 'j': '𝓙', 'k': '𝓚', 'l': '𝓛', 'm': '𝓜', 'n': '𝓝',
+  'o': '𝓞', 'p': '𝓟', 'q': '𝓠', 'r': '𝓡', 's': '𝓢', 't': '𝓣', 'u': '𝓤',
+  'v': '𝓥', 'w': '𝓦', 'x': '𝓧', 'y': '𝓨', 'z': '𝓩'
+};
+
+function toFancyScript(text) {
+  if (!text) return '';
+  return Array.from(text).map(ch => fontMap[ch] || fontMap[ch.toLowerCase()] || ch).join('');
+}
 
 async function buildTemplate() {
   const width = 1200;
   const height = 1100;
 
-  const pirataB64 = fs.readFileSync(path.join(__dirname, '../assets/fonts/PirataOne-Regular.ttf')).toString('base64');
-
   // Fields configuration
   const fields = [
-    { label: 'Name', y: 250, labelX: 190, arrowX: 330, lineStartX: 370, lineEndX: 1040 },
-    { label: 'Age', y: 345, labelX: 190, arrowX: 280, lineStartX: 320, lineEndX: 1040 },
-    { label: 'Location', y: 440, labelX: 190, arrowX: 370, lineStartX: 410, lineEndX: 1040 },
-    { label: 'Religion', y: 535, labelX: 190, arrowX: 360, lineStartX: 400, lineEndX: 1040 },
-    { label: 'Relationship', y: 630, labelX: 190, arrowX: 420, lineStartX: 460, lineEndX: 1040 },
-    { label: 'Hight', y: 725, labelX: 190, arrowX: 310, lineStartX: 350, lineEndX: 1040 },
-    { label: 'Birthday', y: 820, labelX: 190, arrowX: 360, lineStartX: 400, lineEndX: 1040 },
-    { label: 'Besteii:', y: 915, labelX: 190, arrowX: 350, lineStartX: 390, lineEndX: 1040 },
+    { label: toFancyScript('Name'), y: 250, labelX: 160, arrowX: 480, lineStartX: 510, lineEndX: 1060 },
+    { label: toFancyScript('Age'), y: 345, labelX: 160, arrowX: 480, lineStartX: 510, lineEndX: 1060 },
+    { label: toFancyScript('Location'), y: 440, labelX: 160, arrowX: 480, lineStartX: 510, lineEndX: 1060 },
+    { label: toFancyScript('Religion'), y: 535, labelX: 160, arrowX: 480, lineStartX: 510, lineEndX: 1060 },
+    { label: toFancyScript('Relationship'), y: 630, labelX: 160, arrowX: 480, lineStartX: 510, lineEndX: 1060 },
+    { label: toFancyScript('Hight'), y: 725, labelX: 160, arrowX: 480, lineStartX: 510, lineEndX: 1060 },
+    { label: toFancyScript('Birthday'), y: 820, labelX: 160, arrowX: 480, lineStartX: 510, lineEndX: 1060 },
+    { label: toFancyScript('Besteii:'), y: 915, labelX: 160, arrowX: 480, lineStartX: 510, lineEndX: 1060 },
   ];
 
   // Intricate Light-Theme Spiderweb SVGs (Crimson lines against Light Parchment Canvas)
@@ -152,7 +111,7 @@ async function buildTemplate() {
     
     // Field Label
     fieldsMarkup += `
-      <text x="${f.labelX}" y="${f.y}" font-family="Pirata One" font-size="44" font-weight="normal" fill="url(#gothicTitleRed)" filter="url(#softShadow)">${f.label}</text>
+      <text x="${f.labelX}" y="${f.y}" font-size="38" font-weight="bold" fill="url(#gothicTitleRed)" filter="url(#softShadow)">${f.label}</text>
     `;
     
     // Arrowhead pointer
@@ -168,15 +127,6 @@ async function buildTemplate() {
   const svgTemplate = `
   <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
     <defs>
-      <style>
-        @font-face {
-          font-family: 'Pirata One';
-          src: url('data:font/ttf;charset=utf-8;base64,${pirataB64}') format('truetype');
-          font-weight: normal;
-          font-style: normal;
-        }
-      </style>
-
       <!-- Parchment Background Gradient -->
       <radialGradient id="lightBg" cx="50%" cy="50%" r="70%" fx="50%" fy="50%">
         <stop offset="0%" stop-color="#ffffff"/>
@@ -246,7 +196,7 @@ async function buildTemplate() {
     <text x="850" y="115" font-size="28" fill="#800000" text-anchor="middle">✦</text>
 
     <!-- Main Title "About Me" -->
-    <text x="600" y="118" font-family="Pirata One" font-size="80" font-weight="normal" fill="url(#gothicTitleRed)" text-anchor="middle" filter="url(#softShadow)">About Me</text>
+    <text x="600" y="118" font-size="70" font-weight="bold" fill="url(#gothicTitleRed)" text-anchor="middle" filter="url(#softShadow)">${toFancyScript('About Me')}</text>
 
     <!-- 8 Field Rows with Spiders & Labels -->
     ${fieldsMarkup}
@@ -261,8 +211,8 @@ async function buildTemplate() {
     ${drawSpider(820, 1035, 0.7, 20, 0.85)}
 
     <!-- Credit Text -->
-    <text x="600" y="1038" font-family="Pirata One" font-size="32" font-weight="normal" fill="#660000" text-anchor="middle" letter-spacing="3px">
-      Design by SA K IB
+    <text x="600" y="1038" font-size="30" font-weight="bold" fill="#660000" text-anchor="middle" letter-spacing="2px">
+      ${toFancyScript('Design by SA K IB')}
     </text>
   </svg>
   `;
