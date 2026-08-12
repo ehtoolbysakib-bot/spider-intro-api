@@ -1,0 +1,6 @@
+{
+  "name": "About Me Image Generation API",
+  "description": "Gothic About Me PNG Image Generation API powered by Express and Sharp",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
