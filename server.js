@@ -91,7 +91,16 @@ app.get('/api/about-me', async (req, res) => {
 
 // Setup Vite middleware in development or serve static SPA in production
 async function setupFrontend() {
-  if (process.env.NODE_ENV !== 'production') {
+  const distPath = path.join(__dirname, 'dist');
+  const hasDist = fs.existsSync(distPath);
+
+  if (hasDist || process.env.NODE_ENV === 'production') {
+    app.use(express.static(distPath));
+    app.get('*', (req, res) => {
+      res.sendFile(path.join(distPath, 'index.html'));
+    });
+    console.log('Serving production static files from dist directory.');
+  } else {
     try {
       const { createServer: createViteServer } = await import('vite');
       const vite = await createViteServer({
@@ -102,16 +111,10 @@ async function setupFrontend() {
       console.log('Vite development middleware attached.');
     } catch (e) {
       console.warn('Vite dev server initialization skipped:', e.message);
-      app.get('/', (req, res) => {
-        res.send('About Me Image API');
+      app.get('*', (req, res) => {
+        res.sendFile(path.join(__dirname, 'index.html'));
       });
     }
-  } else {
-    const distPath = path.join(__dirname, 'dist');
-    app.use(express.static(distPath));
-    app.get('*', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
-    });
   }
 }
 
