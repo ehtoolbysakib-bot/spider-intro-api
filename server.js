@@ -10,22 +10,29 @@ import { createCacheKey, getCachedImage, setCachedImage } from './src/cache.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Ensure TTF fonts are registered in user font directory for Linux Fontconfig/librsvg
+// Ensure TTF fonts are registered in user font directories for Linux Fontconfig/librsvg
 try {
   const userFontDir = path.join(os.homedir(), '.fonts');
-  if (!fs.existsSync(userFontDir)) {
-    fs.mkdirSync(userFontDir, { recursive: true });
-  }
+  const userLocalFontDir = path.join(os.homedir(), '.local', 'share', 'fonts');
+
+  [userFontDir, userLocalFontDir].forEach((dir) => {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  });
+
   const fontsDir = path.join(__dirname, 'assets', 'fonts');
   if (fs.existsSync(fontsDir)) {
     const fontFiles = fs.readdirSync(fontsDir);
     fontFiles.forEach((file) => {
       if (file.endsWith('.ttf')) {
-        fs.copyFileSync(path.join(fontsDir, file), path.join(userFontDir, file));
+        const src = path.join(fontsDir, file);
+        fs.copyFileSync(src, path.join(userFontDir, file));
+        fs.copyFileSync(src, path.join(userLocalFontDir, file));
       }
     });
     try {
-      execSync('fc-cache -f ~/.fonts', { stdio: 'ignore' });
+      execSync('fc-cache -f ~/.fonts ~/.local/share/fonts', { stdio: 'ignore' });
     } catch (_) {}
   }
 } catch (e) {
